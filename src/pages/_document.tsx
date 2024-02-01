@@ -11,7 +11,6 @@ export default class MyDocument extends Document {
           <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
           <link rel="apple-touch-icon" href="/icons/apple-icon.png" />
           <link rel="apple-touch-icon" sizes="512x512" href="/icons/apple-icon.png" />
-          <link rel="manifest" href="/manifest.json" />
         </Head>
         <body>
           <Main />

@@ -2,8 +2,8 @@ import {Controls} from '@/components/hooks/useControls';
 import {Car, createCar, drawCar, updateCar} from '@/domain/model/Car';
 import {MutableRefObject, useCallback, useRef} from 'react';
 
-const useCar = () => {
-  const carRef = useRef<Car>(createCar(100, 100, 30, 50));
+const useCar = (x: number, y: number, width: number, height: number) => {
+  const carRef = useRef<Car>(createCar(x, y, width, height));
 
   const drawCarInContext = useCallback(
     (ctx: CanvasRenderingContext2D) => {

@@ -3,12 +3,11 @@ import {MutableRefObject, useEffect, useRef} from 'react';
 type Controls = {
   left: boolean;
   right: boolean;
-  up: boolean;
-  down: boolean;
+  forward: boolean;
+  reverse: boolean;
 };
 
 const handleKeyDown = (event: KeyboardEvent, ref: MutableRefObject<Controls>) => {
-  console.log(event.key);
   switch (event.key) {
     case 'ArrowLeft':
       ref.current.left = true;
@@ -17,16 +16,15 @@ const handleKeyDown = (event: KeyboardEvent, ref: MutableRefObject<Controls>) =>
       ref.current.right = true;
       break;
     case 'ArrowUp':
-      ref.current.up = true;
+      ref.current.forward = true;
       break;
     case 'ArrowDown':
-      ref.current.down = true;
+      ref.current.reverse = true;
       break;
   }
 };
 
 const handleKeyUp = (event: KeyboardEvent, ref: MutableRefObject<Controls>) => {
-  console.log(event.key);
   switch (event.key) {
     case 'ArrowLeft':
       ref.current.left = false;
@@ -35,15 +33,15 @@ const handleKeyUp = (event: KeyboardEvent, ref: MutableRefObject<Controls>) => {
       ref.current.right = false;
       break;
     case 'ArrowUp':
-      ref.current.up = false;
+      ref.current.forward = false;
       break;
     case 'ArrowDown':
-      ref.current.down = false;
+      ref.current.reverse = false;
       break;
   }
 };
 const useControls = () => {
-  const ref = useRef({left: false, right: false, up: false, down: false});
+  const ref = useRef({left: false, right: false, forward: false, reverse: false});
 
   useEffect(() => {
     const handleKeyDownRef = (event: KeyboardEvent) => handleKeyDown(event, ref);
