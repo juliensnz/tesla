@@ -18,7 +18,7 @@ const useCar = (x: number, y: number, width: number, height: number) => {
     [carRef]
   );
 
-  return [updateCarWithControls, drawCarInContext] as const;
+  return [carRef, updateCarWithControls, drawCarInContext] as const;
 };
 
 export {useCar};

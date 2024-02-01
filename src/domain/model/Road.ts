@@ -57,21 +57,24 @@ const drawRoad = (road: Road, ctx: CanvasRenderingContext2D) => {
     const x = lerp(road.position.left, road.position.right, i / road.size.laneCount);
 
     // if (i > 0 && i < road.size.laneCount) {
-    //   ctx.setLineDash([20, 20]);
     // } else {
     //   ctx.setLineDash([]);
     // }
 
     ctx.beginPath();
+    ctx.setLineDash([20, 20]);
     ctx.moveTo(x, road.position.top);
     ctx.lineTo(x, road.position.bottom);
     ctx.stroke();
   }
 
-  ctx.beginPath();
-  ctx.moveTo(road.position.right, road.position.top);
-  ctx.lineTo(road.position.right, road.position.bottom);
-  ctx.stroke();
+  road.borders.forEach(border => {
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.moveTo(border[0].x, border[0].y);
+    ctx.lineTo(border[1].x, border[1].y);
+    ctx.stroke();
+  });
 };
 
 const updateRoad = (road: Road, controls: Controls): Road => {
