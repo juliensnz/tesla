@@ -1,6 +1,3 @@
-import {RuntimeError} from './RuntimeError';
-import {Either, Result} from './Result';
-
 type UUID = string;
 
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
@@ -19,6 +16,7 @@ const isMedia = (value: unknown): value is {type: 'media' | 'url'; value: string
   isObject(value) && isString(value.type) && ['media', 'url'].includes(value.type) && isString(value.value);
 const camelToSnakeCase = (str: string): string => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 const capitalize = <T extends string>(value: T) => (value.charAt(0).toUpperCase() + value.slice(1)) as Capitalize<T>;
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 const waitFor = (time: number): Promise<void> =>
   new Promise(resolve => {
@@ -62,20 +60,6 @@ const omit = <ObjectType extends Record<string, unknown>, KeyType extends (keyof
     KeyType[number]
   >;
 
-const parseJSON = <T>(json: string): Either<T, RuntimeError> => {
-  try {
-    return Result.Ok(JSON.parse(json));
-  } catch (error) {
-    return Result.fromNativeError(error, {
-      type: 'parse_json',
-      message: 'Unable to parse JSON',
-      payload: {
-        data: json,
-      },
-    });
-  }
-};
-
 const arrayUnique = <T = unknown>(...arrays: T[][]): T[] => [...new Set([...arrays.flat()])];
 
 const areObjectsEqual = (obj1: Record<string, unknown>, obj2: Record<string, unknown>) => {
@@ -116,11 +100,11 @@ export {
   isString,
   isStringCollection,
   omit,
-  parseJSON,
   pick,
   upperCamelize,
   waitFor,
   getDayOfTheWeekAsString,
+  lerp,
 };
 
 export type {UUID};

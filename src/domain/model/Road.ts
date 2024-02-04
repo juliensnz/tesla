@@ -1,4 +1,5 @@
 import {Controls} from '@/components/hooks/useControls';
+import {lerp} from '@/domain/model/utils';
 
 const INFINITY = 1000000000;
 
@@ -46,8 +47,6 @@ const getLaneCenter = (road: Road, lane: number): number => {
 
   return road.position.left + laneWidth * Math.min(lane, road.size.laneCount - 1) + laneWidth / 2;
 };
-
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 const drawRoad = (road: Road, ctx: CanvasRenderingContext2D) => {
   ctx.lineWidth = 5;
