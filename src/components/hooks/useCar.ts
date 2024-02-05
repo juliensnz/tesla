@@ -1,6 +1,7 @@
 import {Controls} from '@/components/hooks/useControls';
 import {Car, createCar, drawCar, updateCar} from '@/domain/model/Car';
-import {MutableRefObject, useCallback, useRef} from 'react';
+import {Road} from '@/domain/model/Road';
+import {useCallback, useRef} from 'react';
 
 const useCar = (x: number, y: number, width: number, height: number) => {
   const carRef = useRef<Car>(createCar(x, y, width, height));
@@ -12,8 +13,8 @@ const useCar = (x: number, y: number, width: number, height: number) => {
     [carRef]
   );
   const updateCarWithControls = useCallback(
-    (controls: MutableRefObject<Controls>) => {
-      carRef.current = updateCar(carRef.current, controls.current);
+    (controls: Controls, road: Road) => {
+      carRef.current = updateCar(carRef.current, controls, road);
     },
     [carRef]
   );

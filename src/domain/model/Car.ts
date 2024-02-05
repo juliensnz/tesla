@@ -1,4 +1,6 @@
 import {Controls} from '@/components/hooks/useControls';
+import {Road} from '@/domain/model/Road';
+import {Point, createPolygon, hasIntersection} from '@/domain/model/utils';
 
 type Car = {
   position: {
@@ -16,6 +18,8 @@ type Car = {
     maxSpeed: number;
     friction: number;
   };
+  damaged: boolean;
+  hitbox: [Point, Point, Point, Point];
 };
 
 const createCar = (x: number, y: number, width: number, height: number): Car => ({
@@ -27,18 +31,25 @@ const createCar = (x: number, y: number, width: number, height: number): Car => 
     maxSpeed: 3,
     friction: 0.05,
   },
+  damaged: false,
+  hitbox: [
+    {x: x - width / 2, y: y - height / 2},
+    {x: x + width / 2, y: y - height / 2},
+    {x: x + width / 2, y: y + height / 2},
+    {x: x - width / 2, y: y + height / 2},
+  ],
 });
 
 const drawCar = (car: Car, ctx: CanvasRenderingContext2D) => {
-  ctx.save();
-  ctx.translate(car.position.x, car.position.y);
-  ctx.rotate(-car.position.angle);
-
+  if (car.damaged) {
+    ctx.fillStyle = 'red';
+  }
   ctx.beginPath();
-  ctx.rect(-car.size.width / 2, -car.size.height / 2, car.size.width, car.size.height);
+  ctx.moveTo(car.hitbox[0].x, car.hitbox[0].y);
+  for (let i = 1; i < car.hitbox.length; i++) {
+    ctx.lineTo(car.hitbox[i].x, car.hitbox[i].y);
+  }
   ctx.fill();
-
-  ctx.restore();
 };
 
 const updateSpeed = (car: Car, controls: Controls): number => {
@@ -101,10 +112,38 @@ const moveCar = (car: Car, controls: Controls): Car => {
   };
 };
 
-const updateCar = (car: Car, controls: Controls): Car => {
-  const movedCar = moveCar(car, controls);
+const getCarHitBox = (car: Car): [Point, Point, Point, Point] => {
+  const rad = Math.hypot(car.size.width, car.size.height) / 2;
+  const alpha = Math.atan2(car.size.width, car.size.height);
 
-  return movedCar;
+  return [
+    {
+      x: car.position.x - rad * Math.sin(car.position.angle + alpha),
+      y: car.position.y - rad * Math.cos(car.position.angle + alpha),
+    },
+    {
+      x: car.position.x - rad * Math.sin(car.position.angle - alpha),
+      y: car.position.y - rad * Math.cos(car.position.angle - alpha),
+    },
+    {
+      x: car.position.x - rad * Math.sin(Math.PI + car.position.angle + alpha),
+      y: car.position.y - rad * Math.cos(Math.PI + car.position.angle + alpha),
+    },
+    {
+      x: car.position.x - rad * Math.sin(Math.PI + car.position.angle - alpha),
+      y: car.position.y - rad * Math.cos(Math.PI + car.position.angle - alpha),
+    },
+  ];
+};
+
+const assessDamages = (car: Car, road: Road): boolean => {
+  return road.borders.some(border => hasIntersection(createPolygon(car.hitbox), createPolygon(border)));
+};
+
+const updateCar = (car: Car, controls: Controls, road: Road): Car => {
+  const movedCar = !car.damaged ? moveCar(car, controls) : car;
+
+  return {...movedCar, hitbox: getCarHitBox(movedCar), damaged: assessDamages(movedCar, road)};
 };
 
 export type {Car};

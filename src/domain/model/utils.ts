@@ -1,110 +1,41 @@
 type UUID = string;
 
-const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
-const isString = (value: unknown): value is string => typeof value === 'string';
-const convertStringToBool = (value: 'true' | 'false'): boolean => value === 'true';
-const isStringCollection = (value: unknown): value is string[] => Array.isArray(value) && value.every(isString);
-const isNumber = (value: unknown): value is number => typeof value === 'number';
-const isArray = (value: unknown): value is Array<unknown> => Array.isArray(value);
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-const isMeasurement = (value: unknown): value is {value: string; unit: string} =>
-  isObject(value) && isString(value.value) && isString(value.unit);
-const isPrice = (value: unknown): value is {amount: string; currency: string} =>
-  isObject(value) && isString(value.amount) && isString(value.currency);
-const isMedia = (value: unknown): value is {type: 'media' | 'url'; value: string} =>
-  isObject(value) && isString(value.type) && ['media', 'url'].includes(value.type) && isString(value.value);
-const camelToSnakeCase = (str: string): string => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-const capitalize = <T extends string>(value: T) => (value.charAt(0).toUpperCase() + value.slice(1)) as Capitalize<T>;
+type Point = {x: number; y: number};
+type Segment = [Point, Point];
+type Polygon = Segment[];
+
+type Touch = {
+  x: number;
+  y: number;
+  distance: number;
+};
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-const waitFor = (time: number): Promise<void> =>
-  new Promise(resolve => {
-    setTimeout(resolve, time);
-  });
+const getIntersection = (segment1: Segment, segment2: Segment): Touch | null => {
+  const [a, b] = segment1;
+  const [c, d] = segment2;
 
-type SnakeToCamelCase<S extends string> = S extends `${infer T}_${infer U}`
-  ? `${Capitalize<T>}${Capitalize<SnakeToCamelCase<U>>}`
-  : Capitalize<S>;
-
-const upperCamelize = <T extends string>(value: T): SnakeToCamelCase<T> =>
-  value.split('_').map(capitalize).join('') as SnakeToCamelCase<T>;
-
-type PositiveInteger<T extends number> = number extends T
-  ? never
-  : `${T}` extends `-${string}` | `${string}.${string}` | `0`
-  ? never
-  : T;
-
-const groupIntoBatches = <T, BatchSizeType extends number>(
-  iterator: T[],
-  batchSize: PositiveInteger<BatchSizeType>
-): T[][] => {
-  const batchCount = Math.ceil(iterator.length / batchSize);
-
-  return Array.from({length: batchCount}, (_, i) => iterator.slice(i * batchSize, (i + 1) * batchSize));
+  const tTop = (d.x - c.x) * (a.y - c.y) - (d.y - c.y) * (a.x - c.x);
+  const uTop = (c.y - a.y) * (a.x - b.x) - (c.x - a.x) * (a.y - b.y);
+  const bottom = (d.y - c.y) * (b.x - a.x) - (d.x - c.x) * (b.y - a.y);
+  if (bottom != 0) {
+    const t = tTop / bottom;
+    const u = uTop / bottom;
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      return {x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), distance: t};
+    }
+  }
+  return null;
 };
 
-const pick = <ValueType>(
-  source: Record<string, ValueType>,
-  includedKeys: Array<keyof typeof source>
-): Record<string, ValueType> =>
-  Object.fromEntries(Object.entries(source).filter(([key]) => includedKeys.includes(key)));
-
-const omit = <ObjectType extends Record<string, unknown>, KeyType extends (keyof ObjectType)[]>(
-  source: ObjectType,
-  excludedKeys: KeyType
-): Omit<ObjectType, KeyType[number]> =>
-  Object.fromEntries(Object.entries(source).filter(([key]) => !excludedKeys.includes(key))) as Omit<
-    ObjectType,
-    KeyType[number]
-  >;
-
-const arrayUnique = <T = unknown>(...arrays: T[][]): T[] => [...new Set([...arrays.flat()])];
-
-const areObjectsEqual = (obj1: Record<string, unknown>, obj2: Record<string, unknown>) => {
-  const keys = arrayUnique([...Object.keys(obj1), ...Object.keys(obj2)]);
-  return keys.every(key => obj1[key] === obj2[key]);
+const createPolygon = (points: Point[]): Polygon => {
+  return points.map((point, i) => [point, points[(i + 1) % points.length]]);
 };
 
-const indexBy = <Item extends Record<string, unknown>, Key extends keyof Item>(
-  items: Item[],
-  key: Key
-): Record<Key, Item> => Object.fromEntries(items.map(item => [item[key], item])) as Record<Key, Item>;
-
-const groupBy = <T>(array: T[], key: (item: T) => string | number) =>
-  array.reduce((groups, item) => {
-    (groups[key(item)] ||= []).push(item);
-    return groups;
-  }, {} as Record<string | number, T[]>);
-
-const getDayOfTheWeekAsString = (day: number) =>
-  ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day];
-
-export {
-  areObjectsEqual,
-  arrayUnique,
-  camelToSnakeCase,
-  capitalize,
-  convertStringToBool,
-  groupBy,
-  groupIntoBatches,
-  indexBy,
-  isArray,
-  isBoolean,
-  isMeasurement,
-  isMedia,
-  isNumber,
-  isObject,
-  isPrice,
-  isString,
-  isStringCollection,
-  omit,
-  pick,
-  upperCamelize,
-  waitFor,
-  getDayOfTheWeekAsString,
-  lerp,
+const hasIntersection = (polygon1: Polygon, polygon2: Polygon): boolean => {
+  return polygon1.some(segment1 => polygon2.some(segment2 => getIntersection(segment1, segment2) !== null));
 };
 
-export type {UUID};
+export {lerp, getIntersection, hasIntersection, createPolygon};
+
+export type {UUID, Point, Segment, Touch};

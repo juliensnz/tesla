@@ -1,5 +1,5 @@
 import {Controls} from '@/components/hooks/useControls';
-import {lerp} from '@/domain/model/utils';
+import {Segment, lerp} from '@/domain/model/utils';
 
 const INFINITY = 1000000000;
 
@@ -19,7 +19,7 @@ type Road = {
     width: number;
     laneCount: number;
   };
-  borders: Point[][];
+  borders: Segment[];
 };
 
 const createRoad = (x: number, width: number, laneCount: number = 3): Road => {
