@@ -1,7 +1,8 @@
 import {useCar} from '@/components/hooks/useCar';
 import {useControls} from '@/components/hooks/useControls';
 import {useRoad} from '@/components/hooks/useRoad';
-import {useSensors} from '@/components/hooks/useSensors';
+import {useTrafic} from '@/components/hooks/useTraffic';
+import {createCar} from '@/domain/model/Car';
 import {useCallback, useEffect, useRef} from 'react';
 import styled from 'styled-components';
 
@@ -14,10 +15,10 @@ const CANVAS_WIDTH = 200;
 const Scene = () => {
   const ref = useRef<HTMLCanvasElement>(null);
   const controls = useControls();
-  const [_sensorsRef, updateSensors, drawSensors] = useSensors(5, 150, Math.PI / 4);
 
   const [roadRef, drawRoad, getLaneCenter] = useRoad(CANVAS_WIDTH);
-  const [carRef, updateCar, drawCar] = useCar(getLaneCenter(1), 100, 30, 50);
+  const [carRef, updateCar, drawCar] = useCar(createCar(getLaneCenter(1), 100, 30, 50));
+  const [trafficRef, updateTraffic, drawTraffic] = useTrafic([createCar(getLaneCenter(1), -100, 30, 50, 2)]);
   const requestRef = useRef<number>(0);
 
   const animate = useCallback(() => {
@@ -30,19 +31,20 @@ const Scene = () => {
 
     const car = carRef.current;
     const road = roadRef.current;
+    const traffic = trafficRef.current;
 
     ctx.save();
     ctx.translate(0, -car.position.y + canvas.height * 0.7);
 
-    updateCar(controls.current, road);
-    updateSensors(car, road);
+    updateCar(controls.current, road, traffic);
+    updateTraffic(road);
     drawRoad(ctx);
     drawCar(ctx);
-    drawSensors(ctx, car);
+    drawTraffic(ctx);
 
     ctx.restore();
     requestRef.current = requestAnimationFrame(animate);
-  }, [carRef, updateCar, roadRef, controls, updateSensors, drawRoad, drawSensors, drawCar]);
+  }, [carRef, roadRef, trafficRef, updateCar, controls, updateTraffic, drawRoad, drawCar, drawTraffic]);
 
   useEffect(() => {
     requestRef.current = requestAnimationFrame(animate);

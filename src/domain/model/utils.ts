@@ -38,4 +38,4 @@ const hasIntersection = (polygon1: Polygon, polygon2: Polygon): boolean => {
 
 export {lerp, getIntersection, hasIntersection, createPolygon};
 
-export type {UUID, Point, Segment, Touch};
+export type {UUID, Point, Segment, Touch, Polygon};

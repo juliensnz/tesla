@@ -7,6 +7,15 @@ type Controls = {
   reverse: boolean;
 };
 
+const createDummyControls = (): Controls => ({left: false, right: false, forward: true, reverse: false});
+
+const updateControls = (originalControls: Controls, updates: Controls) => {
+  const userIsControlling =
+    originalControls.left || originalControls.right || originalControls.forward || originalControls.reverse;
+
+  return userIsControlling ? originalControls : updates;
+};
+
 const handleKeyDown = (event: KeyboardEvent, ref: MutableRefObject<Controls>) => {
   switch (event.key) {
     case 'ArrowLeft':
@@ -59,5 +68,5 @@ const useControls = () => {
   return ref;
 };
 
-export {useControls};
+export {useControls, createDummyControls, updateControls};
 export type {Controls};

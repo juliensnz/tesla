@@ -7,8 +7,8 @@ const useSensors = (count: number, length: number, spread: number) => {
   const ref = useRef<Sensors>({count, length, spread, rays: [], readings: []});
 
   const updateSensorsWithCar = useCallback(
-    (car: Car, road: Road) => {
-      ref.current = updateSensors(ref.current, car, road);
+    (car: Car, road: Road, traffic: Car[]) => {
+      ref.current = updateSensors(ref.current, car, road, traffic);
     },
     [ref]
   );

@@ -1,6 +1,6 @@
 import {Car} from '@/domain/model/Car';
 import {Road} from '@/domain/model/Road';
-import {Point, Segment, Touch, getIntersection, lerp} from '@/domain/model/utils';
+import {Point, Polygon, Segment, Touch, createPolygon, getIntersection, lerp} from '@/domain/model/utils';
 
 type Sensors = {
   count: number;
@@ -11,9 +11,9 @@ type Sensors = {
   readings: (Touch | null)[];
 };
 
-const generateReading = (ray: Segment, road: Road): Touch | null => {
-  const touches = road.borders.reduce<Touch[]>((touches, border) => {
-    const touch = getIntersection(ray, border);
+const generateReading = (ray: Segment, polygon: Polygon): Touch | null => {
+  const touches = polygon.reduce<Touch[]>((touches, segment) => {
+    const touch = getIntersection(ray, segment);
 
     if (null === touch) {
       return touches;
@@ -29,7 +29,7 @@ const generateReading = (ray: Segment, road: Road): Touch | null => {
   return touches.reduce((min, touch) => (touch.distance < min.distance ? touch : min), touches[0]);
 };
 
-const updateSensors = (sensors: Sensors, car: Car, road: Road): Sensors => {
+const updateSensors = (sensors: Sensors, car: Car, road: Road, traffic: Car[]): Sensors => {
   const rays = Array.from({length: sensors.count}, (_, i) => {
     const angle =
       lerp(sensors.spread / 2, -sensors.spread / 2, sensors.count === 1 ? 0.5 : i / (sensors.count - 1)) +
@@ -43,7 +43,27 @@ const updateSensors = (sensors: Sensors, car: Car, road: Road): Sensors => {
     return [start, end] as Segment;
   });
 
-  const readings = rays.map(ray => generateReading(ray, road));
+  const readings = rays.map(ray => {
+    const roadTouches = generateReading(ray, road.borders);
+
+    if (roadTouches) {
+      return roadTouches;
+    }
+
+    return traffic.reduce<Touch | null>((min, car) => {
+      const carTouches = generateReading(ray, createPolygon(car.hitbox));
+
+      if (null === carTouches) {
+        return min;
+      }
+
+      if (null === min) {
+        return carTouches;
+      }
+
+      return carTouches.distance < min.distance ? carTouches : min;
+    }, null);
+  });
 
   return {...sensors, rays, readings};
 };

@@ -22,13 +22,13 @@ type Car = {
   hitbox: [Point, Point, Point, Point];
 };
 
-const createCar = (x: number, y: number, width: number, height: number): Car => ({
+const createCar = (x: number, y: number, width: number, height: number, maxSpeed: number = 3): Car => ({
   position: {x, y, angle: 0},
   size: {width, height},
   motion: {
     speed: 0,
     acceleration: 0.2,
-    maxSpeed: 3,
+    maxSpeed,
     friction: 0.05,
   },
   damaged: false,
@@ -43,6 +43,8 @@ const createCar = (x: number, y: number, width: number, height: number): Car => 
 const drawCar = (car: Car, ctx: CanvasRenderingContext2D) => {
   if (car.damaged) {
     ctx.fillStyle = 'red';
+  } else {
+    ctx.fillStyle = 'black';
   }
   ctx.beginPath();
   ctx.moveTo(car.hitbox[0].x, car.hitbox[0].y);
@@ -136,14 +138,17 @@ const getCarHitBox = (car: Car): [Point, Point, Point, Point] => {
   ];
 };
 
-const assessDamages = (car: Car, road: Road): boolean => {
-  return road.borders.some(border => hasIntersection(createPolygon(car.hitbox), createPolygon(border)));
+const assessDamages = (car: Car, road: Road, traffic: Car[]): boolean => {
+  return (
+    road.borders.some(border => hasIntersection(createPolygon(car.hitbox), createPolygon(border))) ||
+    traffic.some(otherCar => hasIntersection(createPolygon(car.hitbox), createPolygon(otherCar.hitbox)))
+  );
 };
 
-const updateCar = (car: Car, controls: Controls, road: Road): Car => {
+const updateCar = (car: Car, controls: Controls, road: Road, traffic: Car[]): Car => {
   const movedCar = !car.damaged ? moveCar(car, controls) : car;
 
-  return {...movedCar, hitbox: getCarHitBox(movedCar), damaged: assessDamages(movedCar, road)};
+  return {...movedCar, hitbox: getCarHitBox(movedCar), damaged: car.damaged || assessDamages(movedCar, road, traffic)};
 };
 
 export type {Car};

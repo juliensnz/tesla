@@ -1,22 +1,33 @@
-import {Controls} from '@/components/hooks/useControls';
-import {Car, createCar, drawCar, updateCar} from '@/domain/model/Car';
+import {Controls, updateControls} from '@/components/hooks/useControls';
+import {useNetwork} from '@/components/hooks/useNetwork';
+import {useSensors} from '@/components/hooks/useSensors';
+import {Car, drawCar, updateCar} from '@/domain/model/Car';
+import {getNetworkOuputs} from '@/domain/model/Network';
 import {Road} from '@/domain/model/Road';
 import {useCallback, useRef} from 'react';
 
-const useCar = (x: number, y: number, width: number, height: number) => {
-  const carRef = useRef<Car>(createCar(x, y, width, height));
+const useCar = (car: Car) => {
+  const carRef = useRef<Car>(car);
+  const [sensorRef, updateSensors, drawSensors] = useSensors(5, 150, Math.PI / 2);
+  const [updateNetwork, getNetworkControls] = useNetwork([sensorRef.current.rays.length, 6, 4]);
 
   const drawCarInContext = useCallback(
     (ctx: CanvasRenderingContext2D) => {
       drawCar(carRef.current, ctx);
+      drawSensors(ctx, carRef.current);
     },
-    [carRef]
+    [carRef, drawSensors]
   );
   const updateCarWithControls = useCallback(
-    (controls: Controls, road: Road) => {
-      carRef.current = updateCar(carRef.current, controls, road);
+    (controls: Controls, road: Road, traffic: Car[]) => {
+      updateSensors(carRef.current, road, traffic);
+      updateNetwork(sensorRef.current);
+
+      const updatedControls = updateControls(controls, getNetworkControls());
+
+      carRef.current = updateCar(carRef.current, updatedControls, road, traffic);
     },
-    [carRef]
+    [updateSensors, updateNetwork, sensorRef, getNetworkControls]
   );
 
   return [carRef, updateCarWithControls, drawCarInContext] as const;
