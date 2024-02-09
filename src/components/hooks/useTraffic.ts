@@ -16,7 +16,7 @@ const useTrafic = (cars: Car[]) => {
   );
   const updateTrafficWithControls = useCallback(
     (road: Road) => {
-      trafficRef.current = trafficRef.current.map(car => updateCar(car, dummyControls, road, []));
+      trafficRef.current = trafficRef.current.map(car => updateCar(car, dummyControls, road, trafficRef.current));
     },
     [trafficRef]
   );

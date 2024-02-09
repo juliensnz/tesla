@@ -15,7 +15,7 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     font-family: 'Lato', Helvetica Neue;
-    background-color: black;
+    background-color: lightgrey;
   }
 
   * {

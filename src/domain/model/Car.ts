@@ -42,7 +42,7 @@ const createCar = (x: number, y: number, width: number, height: number, maxSpeed
 
 const drawCar = (car: Car, ctx: CanvasRenderingContext2D) => {
   if (car.damaged) {
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = 'Crimson';
   } else {
     ctx.fillStyle = 'black';
   }

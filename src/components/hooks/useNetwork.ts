@@ -1,4 +1,4 @@
-import {feedNetworkForward, Network, createNetwork, getNetworkControls} from '@/domain/model/Network';
+import {Network, createNetwork, feedNetworkForward, getNetworkControls} from '@/domain/model/Network';
 import {useCallback, useRef} from 'react';
 import {Sensors} from '@/domain/model/Sensors';
 
@@ -11,15 +11,13 @@ const useNetwork = (neuronCounts: number[]) => {
         ref.current,
         sensors.readings.map(reading => (null === reading ? 0 : 1 - reading.distance))
       );
-
-      console.log(getNetworkControls(ref.current));
     },
     [ref]
   );
 
   const getNetworkControlsFromRef = useCallback(() => getNetworkControls(ref.current), [ref]);
 
-  return [updateNetworkWithSensors, getNetworkControlsFromRef] as const;
+  return [ref, updateNetworkWithSensors, getNetworkControlsFromRef] as const;
 };
 
 export {useNetwork};

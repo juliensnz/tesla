@@ -84,7 +84,7 @@ const drawSensors = (sensors: Sensors, ctx: CanvasRenderingContext2D) => {
     const rayEnd = sensors.rays[i][1];
     const intersection = sensors.readings[i] ? (sensors.readings[i] as Touch) : sensors.rays[i][1];
 
-    drawLine(ctx, rayStart, intersection, 'yellow');
+    drawLine(ctx, rayStart, intersection, 'DarkOrange');
     drawLine(ctx, intersection, rayEnd, 'black');
   }
 };
