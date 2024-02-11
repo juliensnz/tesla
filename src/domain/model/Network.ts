@@ -36,6 +36,12 @@ const createNetwork = (neuronCounts: number[]): Network => {
   return {levels};
 };
 
+const improveNetwork = (network: Network): Network => {
+  const levels = network.levels.map(improveLevel);
+
+  return {levels};
+};
+
 const feedNetworkForward = (network: Network, inputs: number[]): Network => {
   return {
     ...network,
@@ -63,6 +69,15 @@ const randomizeLevel = (level: Level): Level => ({
   biases: level.biases.map(() => Math.random() * 2 - 1),
   weights: level.weights.map(row => row.map(() => Math.random() * 2 - 1)),
 });
+
+const improveLevel = (level: Level): Level => ({
+  ...level,
+  biases: level.biases.map(improveNumber),
+  weights: level.weights.map(row => row.map(improveNumber)),
+});
+
+const improveNumber = (value: number): number =>
+  Math.max(-1, Math.min(1, Math.random() > 0.5 ? value - Math.random() * 0.05 : value + Math.random() * 0.05));
 
 const updateLevelInputs = (level: Level, inputs: number[]) => ({
   ...level,
@@ -191,4 +206,4 @@ const drawNeuron = (
 };
 
 export type {Network};
-export {drawNetwork, getNetworkControls, createNetwork, feedNetworkForward, getNetworkOuputs};
+export {improveNetwork, drawNetwork, getNetworkControls, createNetwork, feedNetworkForward, getNetworkOuputs};

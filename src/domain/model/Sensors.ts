@@ -11,6 +11,14 @@ type Sensors = {
   readings: (Touch | null)[];
 };
 
+const createSensors = (count: number, length: number, spread: number) => ({
+  count,
+  length,
+  spread,
+  rays: [],
+  readings: [],
+});
+
 const generateReading = (ray: Segment, polygon: Polygon): Touch | null => {
   const touches = polygon.reduce<Touch[]>((touches, segment) => {
     const touch = getIntersection(ray, segment);
@@ -29,7 +37,8 @@ const generateReading = (ray: Segment, polygon: Polygon): Touch | null => {
   return touches.reduce((min, touch) => (touch.distance < min.distance ? touch : min), touches[0]);
 };
 
-const updateSensors = (sensors: Sensors, car: Car, road: Road, traffic: Car[]): Sensors => {
+const updateSensors = (car: Car, road: Road, traffic: Car[]): Sensors => {
+  const {sensors} = car;
   const rays = Array.from({length: sensors.count}, (_, i) => {
     const angle =
       lerp(sensors.spread / 2, -sensors.spread / 2, sensors.count === 1 ? 0.5 : i / (sensors.count - 1)) +
@@ -90,4 +99,4 @@ const drawSensors = (sensors: Sensors, ctx: CanvasRenderingContext2D) => {
 };
 
 export type {Sensors};
-export {drawSensors, updateSensors};
+export {drawSensors, createSensors, updateSensors};

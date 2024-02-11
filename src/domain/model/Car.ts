@@ -1,8 +1,11 @@
-import {Controls} from '@/components/hooks/useControls';
+import {Controls, updateControls} from '@/components/hooks/useControls';
+import {Network, createNetwork, feedNetworkForward, getNetworkControls, improveNetwork} from '@/domain/model/Network';
 import {Road} from '@/domain/model/Road';
+import {Sensors, createSensors, drawSensors, updateSensors} from '@/domain/model/Sensors';
 import {Point, createPolygon, hasIntersection} from '@/domain/model/utils';
 
 type Car = {
+  uuid: string;
   position: {
     x: number;
     y: number;
@@ -18,11 +21,39 @@ type Car = {
     maxSpeed: number;
     friction: number;
   };
+  real: boolean;
   damaged: boolean;
   hitbox: [Point, Point, Point, Point];
+  sensors: Sensors;
+  network: Network;
 };
 
-const createCar = (x: number, y: number, width: number, height: number, maxSpeed: number = 3): Car => ({
+const createCars = (
+  count: number,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  network?: Network | undefined,
+  real: boolean = true,
+  maxSpeed: number = 3,
+  sensorsCount: number = 10
+): Car[] =>
+  Array(count)
+    .fill(0)
+    .map(() => createCar(x, y, width, height, network, real, maxSpeed, sensorsCount));
+
+const createCar = (
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  network?: Network,
+  real: boolean = true,
+  maxSpeed: number = 3,
+  sensorsCount: number = 10
+): Car => ({
+  uuid: Math.random().toString(36).substring(7),
   position: {x, y, angle: 0},
   size: {width, height},
   motion: {
@@ -38,9 +69,16 @@ const createCar = (x: number, y: number, width: number, height: number, maxSpeed
     {x: x + width / 2, y: y + height / 2},
     {x: x - width / 2, y: y + height / 2},
   ],
+  real,
+  sensors: createSensors(sensorsCount, 150, Math.PI / 2),
+  network: undefined === network ? createNetwork([sensorsCount, 7, 4]) : improveNetwork(network),
 });
 
-const drawCar = (car: Car, ctx: CanvasRenderingContext2D) => {
+const getBestCar = (cars: Car[]) => cars.filter(car => !car.damaged).sort((a, b) => a.position.y - b.position.y)[0];
+
+const drawCar = (car: Car, isBestCar: boolean, ctx: CanvasRenderingContext2D) => {
+  ctx.globalAlpha = isBestCar || !car.real ? 1 : 0.5;
+
   if (car.damaged) {
     ctx.fillStyle = 'Crimson';
   } else {
@@ -52,6 +90,10 @@ const drawCar = (car: Car, ctx: CanvasRenderingContext2D) => {
     ctx.lineTo(car.hitbox[i].x, car.hitbox[i].y);
   }
   ctx.fill();
+  if (car.real && isBestCar) {
+    drawSensors(car.sensors, ctx);
+  }
+  ctx.globalAlpha = 1;
 };
 
 const updateSpeed = (car: Car, controls: Controls): number => {
@@ -146,10 +188,31 @@ const assessDamages = (car: Car, road: Road, traffic: Car[]): boolean => {
 };
 
 const updateCar = (car: Car, controls: Controls, road: Road, traffic: Car[]): Car => {
-  const movedCar = !car.damaged ? moveCar(car, controls) : car;
+  const updatedNetwork = feedNetworkForward(
+    car.network,
+    car.sensors.readings.map(reading => (null === reading ? 0 : 1 - reading.distance))
+  );
 
-  return {...movedCar, hitbox: getCarHitBox(movedCar), damaged: car.damaged || assessDamages(movedCar, road, traffic)};
+  if (!car.real) {
+    return {
+      ...moveCar(car, controls),
+      hitbox: getCarHitBox(car),
+      damaged: car.damaged || assessDamages(car, road, traffic),
+    };
+  }
+  const updatedControls = updateControls(controls, getNetworkControls(updatedNetwork));
+
+  const movedCar = !car.damaged ? moveCar(car, updatedControls) : car;
+  const updatedSensors = updateSensors(car, road, traffic);
+
+  return {
+    ...movedCar,
+    sensors: updatedSensors,
+    network: updatedNetwork,
+    hitbox: getCarHitBox(movedCar),
+    damaged: car.damaged || assessDamages(movedCar, road, traffic),
+  };
 };
 
 export type {Car};
-export {drawCar, updateCar, createCar};
+export {getBestCar, createCars, drawCar, updateCar, createCar};
