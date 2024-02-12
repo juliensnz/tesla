@@ -37,7 +37,7 @@ const createCars = (
   network?: Network | undefined,
   real: boolean = true,
   maxSpeed: number = 3,
-  sensorsCount: number = 10
+  sensorsCount: number = 5
 ): Car[] =>
   Array(count)
     .fill(0)
@@ -71,7 +71,7 @@ const createCar = (
   ],
   real,
   sensors: createSensors(sensorsCount, 150, Math.PI / 2),
-  network: undefined === network ? createNetwork([sensorsCount, 7, 4]) : improveNetwork(network),
+  network: undefined === network ? createNetwork([sensorsCount, 6, 4]) : improveNetwork(network),
 });
 
 const getBestCar = (cars: Car[]) => cars.filter(car => !car.damaged).sort((a, b) => a.position.y - b.position.y)[0];

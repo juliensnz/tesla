@@ -77,7 +77,7 @@ const improveLevel = (level: Level): Level => ({
 });
 
 const improveNumber = (value: number): number =>
-  Math.max(-1, Math.min(1, Math.random() > 0.5 ? value - Math.random() * 0.05 : value + Math.random() * 0.05));
+  Math.max(-1, Math.min(1, Math.random() > 0.5 ? value - Math.random() * 0.1 : value + Math.random() * 0.1));
 
 const updateLevelInputs = (level: Level, inputs: number[]) => ({
   ...level,
